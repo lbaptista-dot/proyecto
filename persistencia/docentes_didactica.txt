@@ -1,0 +1,3 @@
+18765432,Andrea Barisano,Informatica,5
+29876543,Eduardo Cantos,Informática,4
+30987654,Fabian Frola,Informatica,3

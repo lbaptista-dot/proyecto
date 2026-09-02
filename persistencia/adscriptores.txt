@@ -1,0 +1,4 @@
+12345678,Laura Rodriguez,6,Informatica,Liceo 2
+23456789,Carlos Mendez,5,Informatica,Liceo 5
+34567890,Mariana Silva,4,Filosofia,Liceo 4
+45678901,Gonzalo Perez,5,Filosofia,Liceo 3

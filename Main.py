@@ -1,145 +1,148 @@
-from logica.gestion_centros import GestionCentros
-from logica.centro_educativo import CentroEducativo
-from persistencia.repositorio_centros import RepositorioCentros
-
-
-def mostrarMenu():
-    print()
-    print("===== GESTIÓN DE PRÁCTICAS DOCENTES (CENTROS) =====")
-    print("1. Agregar centro educativo")
-    print("2. Listar centros educativos")
-    print("3. Modificar centro educativo")
-    print("4. Eliminar centro educativo")
-    print("5. Solicitar cupo / Cola FIFO")
-    print("6. Liberar cupo")
-    print("7. Buscar centro por nombre (Árbol ABB)")
-    print("8. Salir (guarda en .txt)")
-
-
-def listarCentros(gestion):
-    if gestion.estaVacia():
-        print("La lista de centros está vacía.")
-        return
-    print("Centros en memoria:")
-    for i, c in enumerate(gestion.centros):
-        print(f"  {i}. {c}")
-
-
-def main():
-    gestion = GestionCentros()
-    repositorio = RepositorioCentros()
-
-    # Carga inicial desde el archivo .txt
-    gestion.cargarCentros(repositorio.cargarDesdeTxt())
-    print(f"Se cargaron {gestion.cantidad()} centros desde el archivo TXT.")
-
-    opcion = ""
-    while opcion != "8":
-        mostrarMenu()
-        opcion = input("Elegí una opción: ").strip()
+# ==========================================
+# SUBMENÚ 1: LICEOS
+# ==========================================
+def menuLiceos(gestion, repositorio):
+    while True:
+        print("\n--- (1) MENÚ LICEOS ---")
+        print("1. Registrar")
+        print("2. Modificar")
+        print("3. Borrar")
+        print("4. Listar")
+        print("5. Salir")
+        opcion = input("Elegir opción: ").strip()
 
         if opcion == "1":
-            id_centro = input("ID Centro: ").strip()
-            if id_centro == "":
-                print("El ID no puede estar vacío.")
-                continue
-            nombre = input("Nombre: ").strip()
-            localidad = input("Localidad: ").strip()
-            cupos = input("Cupos totales: ").strip()
-            if not cupos.isdigit():
-                print("Los cupos deben ser un número entero.")
-                continue
-
-            gestion.agregarCentro(CentroEducativo(id_centro, nombre, localidad, cupos))
-            print("Centro educativo agregado.")
-
+            print("\n[Registrar Liceo]")
+            # Lógica para registrar liceo...
         elif opcion == "2":
-            listarCentros(gestion)
-
+            print("\n[Modificar Liceo]")
+            # Lógica para modificar liceo...
         elif opcion == "3":
-            listarCentros(gestion)
-            if not gestion.estaVacia():
-                entrada = input("Número de centro a modificar: ").strip()
-                if entrada.isdigit():
-                    centro = gestion.obtenerCentro(int(entrada))
-                    if centro is None:
-                        print("Número fuera de rango.")
-                    else:
-                        print(f"Centro actual: {centro}")
-                        print("Deja un campo en blanco para mantener el valor actual.")
-                        nombre = input("Nuevo nombre: ").strip()
-                        localidad = input("Nueva localidad: ").strip()
-                        cupos = input("Nuevos cupos totales: ").strip()
-
-                        cupos_val = int(cupos) if cupos.isdigit() else None
-                        gestion.modificarCentro(int(entrada), nombre, localidad, cupos_val)
-                        print(f"Centro actualizado: {centro}")
-                else:
-                    print("Tienes que ingresar un número.")
-
+            print("\n[Borrar Liceo]")
+            # Lógica para borrar liceo...
         elif opcion == "4":
-            listarCentros(gestion)
-            if not gestion.estaVacia():
-                entrada = input("Número de centro a eliminar: ").strip()
-                if entrada.isdigit():
-                    eliminado = gestion.eliminarCentro(int(entrada))
-                    if eliminado is not None:
-                        print(f"Eliminado: {eliminado}")
-                    else:
-                        print("Número fuera de rango.")
-                else:
-                    print("Tienes que ingresar un número.")
-
+            print("\n[Listar Liceos]")
+            # Lógica para listar liceos...
         elif opcion == "5":
-            listarCentros(gestion)
-            if not gestion.estaVacia():
-                entrada = input("Número de centro donde solicitar cupo: ").strip()
-                if entrada.isdigit():
-                    centro = gestion.obtenerCentro(int(entrada))
-                    if centro is None:
-                        print("Número fuera de rango.")
-                    else:
-                        ci = input("C.I. del alumno practicante: ").strip()
-                        if ci != "":
-                            print(centro.solicitarCupo(ci))
-                        else:
-                            print("La C.I. no puede estar vacía.")
-                else:
-                    print("Tienes que ingresar un número.")
-
-        elif opcion == "6":
-            listarCentros(gestion)
-            if not gestion.estaVacia():
-                entrada = input("Número de centro donde liberar cupo: ").strip()
-                if entrada.isdigit():
-                    centro = gestion.obtenerCentro(int(entrada))
-                    if centro is None:
-                        print("Número fuera de rango.")
-                    else:
-                        ci = input("C.I. del alumno a liberar: ").strip()
-                        if ci != "":
-                            print(centro.liberarCupo(ci))
-                        else:
-                            print("La C.I. no puede estar vacía.")
-                else:
-                    print("Tienes que ingresar un número.")
-
-        elif opcion == "7":
-            nombre = input("Nombre del centro a buscar: ").strip()
-            hallado = gestion.buscarPorNombreABB(nombre)
-            if hallado:
-                print(f"Resultado en Árbol ABB: {hallado}")
-            else:
-                print("No se encontró ningún centro con ese nombre en el ABB.")
-
-        elif opcion == "8":
-            # Guarda exclusivamente en .txt
-            repositorio.guardarEnTxt(gestion.centros)
-            print("Datos guardados correctamente en 'centros.txt'. ¡Hasta luego!")
-
+            break  # Vuelve al Menú Principal
         else:
             print("Opción no válida.")
 
+
+# ==========================================
+# SUBMENÚ 2: ADSCRIPTORES
+# ==========================================
+def menuAdscriptores(gestion, repositorio):
+    while True:
+        print("\n--- (2) MENÚ ADSCRIPTORES ---")
+        print("1. Registrar")
+        print("2. Modificar")
+        print("3. Borrar")
+        print("4. Listar")
+        print("5. Salir")
+        opcion = input("Elegir opción: ").strip()
+
+        if opcion == "1":
+            print("\n[Registrar Adscriptor]")
+        elif opcion == "2":
+            print("\n[Modificar Adscriptor]")
+        elif opcion == "3":
+            print("\n[Borrar Adscriptor]")
+        elif opcion == "4":
+            print("\n[Listar Adscriptores]")
+        elif opcion == "5":
+            break
+        else:
+            print("Opción no válida.")
+
+
+# ==========================================
+# SUBMENÚ 3: PRACTICANTES
+# ==========================================
+def menuPracticantes(gestion, repositorio):
+    while True:
+        print("\n--- (3) MENÚ PRACTICANTES ---")
+        print("1. Registrar")
+        print("2. Modificar")
+        print("3. Borrar")
+        print("4. Listar")
+        print("5. Salir")
+        opcion = input("Elegir opción: ").strip()
+
+        if opcion == "1":
+            print("\n[Registrar Practicante]")
+        elif opcion == "2":
+            print("\n[Modificar Practicante]")
+        elif opcion == "3":
+            print("\n[Borrar Practicante]")
+        elif opcion == "4":
+            print("\n[Listar Practicantes]")
+        elif opcion == "5":
+            break
+        else:
+            print("Opción no válida.")
+
+
+# ==========================================
+# SUBMENÚ 4: DOCENTE DIDÁCTICA
+# ==========================================
+def menuDocenteDidactica(gestion, repositorio):
+    while True:
+        print("\n--- (4) MENÚ DOCENTE DIDÁCTICA ---")
+        print("1. Registrar")
+        print("2. Modificar")
+        print("3. Listar")
+        print("4. Tribunal Final")
+        print("5. Salir")
+        opcion = input("Elegir opción: ").strip()
+
+        if opcion == "1":
+            print("\n[Registrar Docente Didáctica]")
+        elif opcion == "2":
+            print("\n[Modificar Docente Didáctica]")
+        elif opcion == "3":
+            print("\n[Listar Docentes Didáctica]")
+        elif opcion == "4":
+            print("\n[Gestión de Tribunal Final]")
+        elif opcion == "5":
+            break
+        else:
+            print("Opción no válida.")
+
+
+# ==========================================
+# MENÚ PRINCIPAL Y PUNTO DE ENTRADA
+# ==========================================
+def main():
+    # Aquí puedes instanciar tus clases de lógica y persistencia
+    gestion = None
+    repositorio = None
+
+    while True:
+        print("\n==========================================")
+        print("            MENÚ PRINCIPAL               ")
+        print("==========================================")
+        print("1. Liceos")
+        print("2. Adscriptores")
+        print("3. Practicantes")
+        print("4. Docente Didáctica")
+        print("5. Salir")
+
+        opcion = input("Elegir opción: ").strip()
+
+        if opcion == "1":
+            menuLiceos(gestion, repositorio)
+        elif opcion == "2":
+            menuAdscriptores(gestion, repositorio)
+        elif opcion == "3":
+            menuPracticantes(gestion, repositorio)
+        elif opcion == "4":
+            menuDocenteDidactica(gestion, repositorio)
+        elif opcion == "5":
+            print("\n¡Gracias por usar el sistema! Saliendo...")
+            break
+        else:
+            print("Opción no válida. Intente nuevamente.")
 
 if __name__ == "__main__":
     main()

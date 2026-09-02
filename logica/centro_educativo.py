@@ -58,7 +58,7 @@ class CentroEducativo:
             return "Cupo liberado. No hay estudiantes en lista de espera."
         return "El estudiante no pertenece a este centro."
 
-    def aDiccionario(self):
+    def Diccionario(self):
         return {
             "id_centro": self.__id_centro,
             "nombre": self.__nombre,
