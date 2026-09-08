@@ -1,21 +1,26 @@
 class ColaFIFO:
-    # Representa la cola de espera FIFO para reservas de cupos.
     def __init__(self):
-        self.__elementos = []
+        # Lista interna para organizar a los estudiantes en orden de llegada (El primero que llega es el primero en ser atendido)
+        self.elementos = []
 
     def encolar(self, elemento):
-        self.__elementos.append(elemento)
+        # Añade un estudiante al final de la fila de espera
+        self.elementos.append(elemento)
 
     def desencolar(self):
+        # Saca al primer estudiante que hizo la fila (el que lleva más tiempo esperando)
         if not self.estaVacia():
-            return self.__elementos.pop(0)
+            return self.elementos.pop(0)
         return None
 
     def estaVacia(self):
-        return len(self.__elementos) == 0
+        # Devuelve Verdadero si no hay nadie esperando en la cola
+        return len(self.elementos) == 0
 
     def obtenerElementos(self):
-        return list(self.__elementos)
+        # Devuelve una copia de la lista de personas que están esperando
+        return list(self.elementos)
 
     def cantidad(self):
-        return len(self.__elementos)
+        # Cuenta cuántas personas están esperando en la fila
+        return len(self.elementos)
