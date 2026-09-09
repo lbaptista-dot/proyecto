@@ -27,9 +27,11 @@ def menuCentrosPracticas(abbCentros, listaCentros):
             except ValueError:
                 cuposTotales = 0
 
+            # Creamos el centro y seteamos los disponibles iguales a los totales al arrancar
             nuevoCentro = CentroEducativo(idCentro, nombre, localidad, cuposTotales)
             nuevoCentro.cuposDisponibles = cuposTotales
 
+            # Lo metemos al Árbol Binario (ABB) y a la lista general
             abbCentros.insertar(nuevoCentro)
             listaCentros.append(nuevoCentro)
             print(f"¡Centro '{nombre}' registrado con éxito!")
@@ -64,6 +66,7 @@ def menuCentrosPracticas(abbCentros, listaCentros):
             largoInicial = len(listaCentros)
             listaCentros[:] = [c for c in listaCentros if c.nombre.strip().lower() != nombreBuscado]
 
+            # Si borramos un centro, reiniciamos el árbol y lo armamos de nuevo para mantenerlo ordenado
             if len(listaCentros) < largoInicial:
                 abbCentros.raiz = None
                 for c in listaCentros:
@@ -78,7 +81,7 @@ def menuCentrosPracticas(abbCentros, listaCentros):
                 print("Todavía no hay centros registrados.")
             else:
                 for c in listaCentros:
-                    print(f"{c} | Cupos: {getattr(c, 'cuposDisponibles', 'N/D')}/{getattr(c, 'cuposTotales', 'N/D')}")
+                    print(f"{c} | Cupos: {c.cuposDisponibles}/{c.cuposTotales}")
 
         elif opcion == "5":
             break
@@ -196,8 +199,9 @@ def menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores):
             print("\n[Borrar Practicante]")
             cedulaBuscada = input("Ingrese la cédula del practicante a borrar: ").strip()
 
+            # Si borramos un practicante que tenía centro, le devolvemos el cupo al colegio
             for p in listaPracticantes:
-                if p.cedula == cedulaBuscada and hasattr(p, 'centroObjeto') and p.centroObjeto:
+                if p.cedula == cedulaBuscada and p.centroObjeto:
                     p.centroObjeto.cuposDisponibles += 1
 
             largoInicial = len(listaPracticantes)
@@ -231,43 +235,52 @@ def menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores):
                 if not listaCentros:
                     print("No hay centros educativos registrados.")
                 else:
-                    print(f"\nPracticante: {practicanteEncontrado.nombre} (Grado: {getattr(practicanteEncontrado, 'grado', 'N/D')})")
+                    print(f"\nPracticante: {practicanteEncontrado.nombre} (Grado: {practicanteEncontrado.grado})")
                     print("\nCentros disponibles y cupos:")
                     for idx, c in enumerate(listaCentros):
-                        disponibles = getattr(c, 'cuposDisponibles', c.cuposTotales)
-                        print(f"{idx + 1}. {c.nombre} (Localidad: {c.localidad}) - Cupos disponibles: {disponibles}")
+                        print(f"{idx + 1}. {c.nombre} (Localidad: {c.localidad}) - Cupos disponibles: {c.cuposDisponibles}")
 
                     try:
                         seleccionCentro = int(input("Seleccione el número del centro: ")) - 1
                         if 0 <= seleccionCentro < len(listaCentros):
                             centroElegido = listaCentros[seleccionCentro]
 
-                            if not hasattr(centroElegido, 'cuposDisponibles'):
-                                centroElegido.cuposDisponibles = int(centroElegido.cuposTotales)
-
+                            # Controlamos que queden lugares libres
                             if centroElegido.cuposDisponibles <= 0:
                                 print("¡Error! Este centro ya no tiene cupos disponibles.")
                                 continue
 
+                            # Buscamos de forma automática al adscriptor que corresponde a este centro
                             adscriptorEncontrado = None
                             for a in listaAdscriptores:
                                 if a.centroPractica.strip().lower() == centroElegido.nombre.strip().lower():
                                     adscriptorEncontrado = a
                                     break
 
+                            # Si lo encontramos, le sugerimos sus días y horarios para ahorrar tiempo
                             if adscriptorEncontrado:
                                 print(f"\n-> Adscriptor responsable: {adscriptorEncontrado.nombre}")
-                                print(f"-> Días y Horarios: {adscriptorEncontrado.dias} | {adscriptorEncontrado.horario}")
+                                print(f"-> Días y Horarios del Adscriptor: {adscriptorEncontrado.dias} | {adscriptorEncontrado.horario}")
                                 nombreAdscriptorTxt = adscriptorEncontrado.nombre
+                                diasSugeridos = adscriptorEncontrado.dias
+                                horarioSugerido = adscriptorEncontrado.horario
                             else:
                                 print("\n-> No hay un adscriptor registrado para este centro.")
                                 nombreAdscriptorTxt = "Sin adscriptor"
+                                diasSugeridos = "A definir"
+                                horarioSugerido = "A definir"
 
-                            dias = input("\nIngrese los días de práctica asignados: ").strip()
-                            horario = input("Ingrese el horario asignado: ").strip()
+                            # Presionando Enter aceptamos lo sugerido o podemos escribir otra cosa
+                            diasInput = input(f"\nIngrese días de práctica [Sugerido: {diasSugeridos}] (Enter para usar): ").strip()
+                            dias = diasInput if diasInput else diasSugeridos
 
+                            horarioInput = input(f"Ingrese horario [Sugerido: {horarioSugerido}] (Enter para usar): ").strip()
+                            horario = horarioInput if horarioInput else horarioSugerido
+
+                            # Descontamos un cupo del centro elegido
                             centroElegido.cuposDisponibles -= 1
 
+                            # Guardamos toda la info en el objeto practicante
                             practicanteEncontrado.centroAsignado = centroElegido.nombre
                             practicanteEncontrado.adscriptorAsignado = nombreAdscriptorTxt
                             practicanteEncontrado.diasPractica = dias
@@ -304,7 +317,7 @@ def menuDocenteDidactica(listaDocentes, listaPracticantes):
             nombre = input("Nombre: ").strip()
             mail = input("Mail: ").strip()
             contacto = input("Contacto opcional: ").strip()
-            asignatura = input("Asignatura / Especialidad: ").strip()
+            asignatura = input("Asignatura / Especialidad / Cargo: ").strip()
 
             nuevoDocente = DocenteDidactica(cedula, nombre, mail, contacto, asignatura)
             listaDocentes.append(nuevoDocente)
@@ -330,14 +343,14 @@ def menuDocenteDidactica(listaDocentes, listaPracticantes):
                 print("No hay docentes registrados.")
             else:
                 for d in listaDocentes:
-                    print(f"Cédula: {d.cedula} | Nombre: {d.nombre} | Especialidad/Cargo: {getattr(d, 'asignatura', 'N/D')}")
+                    print(f"Cédula: {d.cedula} | Nombre: {d.nombre} | Cargo/Esc: {d.asignatura}")
 
         elif opcion == "4":
             print("\n[Gestión de Tribunal Final para Defensa]")
             if not listaPracticantes:
                 print("No hay practicantes registrados.")
             elif len(listaDocentes) < 2:
-                print(f"Se necesitan al menos 2 docentes base en el sistema. Hay {len(listaDocentes)} registrados.")
+                print(f"Se necesitan al menos 2 docentes base. Hay {len(listaDocentes)} registrados.")
             else:
                 print("\nPracticantes disponibles:")
                 for p in listaPracticantes:
@@ -354,9 +367,9 @@ def menuDocenteDidactica(listaDocentes, listaPracticantes):
                     print("No se encontró al practicante.")
                     continue
 
-                print(f"\nDocentes/Directores disponibles en el sistema:")
+                print(f"\nDocentes/Directores disponibles:")
                 for d in listaDocentes:
-                    print(f"- Cédula: {d.cedula} | Nombre: {d.nombre} | Especialidad/Cargo: {getattr(d, 'asignatura', 'N/D')}")
+                    print(f"- Cédula: {d.cedula} | Nombre: {d.nombre} | Cargo: {d.asignatura}")
 
                 def buscarDocentePorInput(mensaje):
                     while True:
@@ -364,38 +377,35 @@ def menuDocenteDidactica(listaDocentes, listaPracticantes):
                         for d in listaDocentes:
                             if d.cedula.strip().lower() == ingreso or d.nombre.strip().lower() == ingreso:
                                 return d
-                        print("Docente no encontrado. Verifique la cédula o el nombre e intente de nuevo.")
+                        print("Docente no encontrado. Intente de nuevo.")
 
                 print("\nAsignando los miembros del tribunal:")
                 doc1 = buscarDocentePorInput("Ingrese el 1er Miembro (Cédula o Nombre): ")
                 doc2 = buscarDocentePorInput("Ingrese el 2do Miembro (Cédula o Nombre): ")
 
-                # Elección para el 3er miembro: Existente o Nuevo en el momento
                 print("\n--- 3er MIEMBRO DEL TRIBUNAL ---")
-                print("1. Seleccionar un docente existente de la lista")
-                print("2. Agregar uno nuevo en el momento (Director, Adscriptor u otra especialidad/cargo)")
-                opcionTercero = input("Seleccione una opción para el 3er miembro: ").strip()
+                print("1. Seleccionar docente existente")
+                print("2. Agregar uno nuevo en el momento (Director, Adscriptor, etc.)")
+                opcionTercero = input("Seleccione una opción: ").strip()
 
                 doc3 = None
                 if opcionTercero == "1":
-                    doc3 = buscarDocentePorInput("Ingrese el 3er Miembro existente (Cédula o Nombre): ")
+                    doc3 = buscarDocentePorInput("Ingrese el 3er Miembro existente: ")
                 elif opcionTercero == "2":
-                    print("\n[Registrar Nuevo Miembro para el Tribunal]")
+                    print("\n[Registrar Nuevo Miembro]")
                     cedula3 = input("Cédula: ").strip()
                     nombre3 = input("Nombre: ").strip()
                     mail3 = input("Mail (opcional): ").strip()
                     contacto3 = input("Contacto (opcional): ").strip()
-                    especialidadCargo = input("Especialidad o Cargo (ej: Director, Adscriptor, Informática, etc.): ").strip()
+                    cargo3 = input("Especialidad o Cargo (ej: Director): ").strip()
 
-                    doc3 = DocenteDidactica(cedula3, nombre3, mail3 if mail3 else "N/D", contacto3 if contacto3 else "N/D", especialidadCargo)
-                    listaDocentes.append(doc3) # Lo guardamos también en la lista general
-                    print(f"¡Nuevo miembro '{nombre3}' ({especialidadCargo}) registrado y sumado al tribunal!")
+                    doc3 = DocenteDidactica(cedula3, nombre3, mail3 if mail3 else "N/D", contacto3 if contacto3 else "N/D", cargo3)
+                    listaDocentes.append(doc3)
+                    print(f"¡Nuevo miembro '{nombre3}' registrado y sumado al tribunal!")
                 else:
-                    print("Opción no válida. Se tomará por defecto un docente existente.")
-                    doc3 = buscarDocentePorInput("Ingrese el 3er Miembro existente (Cédula o Nombre): ")
+                    doc3 = buscarDocentePorInput("Ingrese el 3er Miembro existente: ")
 
                 nuevoTribunal = TribunalFinal(practicanteElegido, doc1, doc2, doc3)
-
                 print("\n¡Tribunal Final asignado con éxito!")
                 print(nuevoTribunal)
 
@@ -413,20 +423,19 @@ def main():
     listaPracticantes = []
     listaDocentes = []
 
-    # 1. Cargamos los Centros Educativos
+    # 1. Cargamos los Centros Educativos desde el archivo de texto al iniciar el programa
     try:
         with open("persistencia/centros.txt", "r", encoding="utf-8") as archivo:
             for linea in archivo:
                 centro = CentroEducativo.desdeLineaTxt(linea)
                 if centro:
-                    if hasattr(centro, 'cuposTotales'):
-                        centro.cuposDisponibles = int(centro.cuposTotales)
+                    centro.cuposDisponibles = int(centro.cuposTotales)
                     abbCentros.insertar(centro)
                     listaCentros.append(centro)
     except FileNotFoundError:
         pass
 
-    # 2. Cargamos los Adscriptores
+    # 2. Cargamos los Adscriptores desde su archivo correspondiente
     try:
         with open("persistencia/adscriptores.txt", "r", encoding="utf-8") as archivo:
             for linea in archivo:
@@ -441,7 +450,7 @@ def main():
     except FileNotFoundError:
         pass
 
-    # 3. Cargamos los Practicantes
+    # 3. Cargamos los Practicantes registrados previamente
     try:
         with open("persistencia/practicantes.txt", "r", encoding="utf-8") as archivo:
             for linea in archivo:
@@ -452,7 +461,7 @@ def main():
     except FileNotFoundError:
         pass
 
-    # 4. Cargamos los Docentes de Didáctica
+    # 4. Cargamos los Docentes de Didáctica desde el archivo de texto
     try:
         with open("persistencia/docentes_didactica.txt", "r", encoding="utf-8") as archivo:
             for linea in archivo:
@@ -466,6 +475,7 @@ def main():
     except FileNotFoundError:
         pass
 
+    # Bucle principal del sistema donde mostramos el menú de navegación general
     while True:
         print("\n==========================================")
         print("    SISTEMA DE GESTIÓN DE PRÁCTICAS      ")
