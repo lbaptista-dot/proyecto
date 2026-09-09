@@ -1,51 +1,36 @@
 from logica.abb_centros import ABBCentros
 
 class GestionCentros:
-    # Gestiona la lista de centros en memoria exactamente como la clase Agenda.
+    # Esta clase se encarga de administrar los centros tanto en una lista (para mostrarlos)
+    # como en el Árbol Binario (para buscarlos rapidísimo).
     def __init__(self):
-        self.__centros = []
-        self.__abb = ABBCentros()
+        self.centros = []
+        self.abb = ABBCentros()
 
-    @property
-    def centros(self):
-        return self.__centros
+    def cargarCentros(self, listaCentros):
+        # Carga los centros (por ejemplo, desde un archivo de texto) y los indexa en el árbol
+        self.centros = listaCentros
+        self.abb = ABBCentros()
+        for centro in self.centros:
+            self.abb.insertar(centro)
 
-    def cargarCentros(self, centros):
-        self.__centros = centros
-        self.__abb = ABBCentros()
-        for c in self.__centros:
-            self.__abb.insertar(c)
-
-    # CREATE: agrega un centro nuevo al final de la lista.
     def agregarCentro(self, centro):
-        self.__centros.append(centro)
-        self.__abb.insertar(centro)
-
-    # DELETE: saca de la lista el centro de esa posicion.
-    def eliminarCentro(self, posicion):
-        if 0 <= posicion < len(self.__centros):
-            return self.__centros.pop(posicion)
-        return None
-
-    # READ: obtiene el centro por posicion.
-    def obtenerCentro(self, posicion):
-        if 0 <= posicion < len(self.__centros):
-            return self.__centros[posicion]
-        return None
-
-    # UPDATE: actualiza los datos del centro en la posicion dada.
-    def modificarCentro(self, posicion, nombre=None, localidad=None, cupos_totales=None):
-        centro = self.obtenerCentro(posicion)
-        if centro is None:
-            return None
-        centro.actualizar(nombre, localidad, cupos_totales)
-        return centro
+        # Agrega un centro nuevo a la lista general y también lo inserta ordenado en el Árbol ABB
+        self.centros.append(centro)
+        self.abb.insertar(centro)
 
     def buscarPorNombreABB(self, nombre):
-        return self.__abb.buscarPorNombre(nombre)
+        # Realiza una búsqueda súper rápida y eficiente utilizando el Árbol Binario de Búsqueda
+        return self.abb.buscarPorNombre(nombre)
+
+    def obtenerTodos(self):
+        # Devuelve la lista completa con todos los centros registrados
+        return self.centros
 
     def estaVacia(self):
-        return len(self.__centros) == 0
+        # Devuelve Verdadero si todavía no hay ningún centro registrado
+        return len(self.centros) == 0
 
     def cantidad(self):
-        return len(self.__centros)
+        # Cuenta cuántos centros hay en total en el sistema
+        return len(self.centros)
