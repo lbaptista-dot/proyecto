@@ -1,52 +1,89 @@
+import os
 from logica.abb_centros import ABBCentros
 from logica.centro_educativo import CentroEducativo
 from logica.practicante import Practicante
 from logica.adscriptor import Adscriptor
 from logica.docenteDidactica import DocenteDidactica
 from logica.tribunalFinal import TribunalFinal
+from logica.visitaDidactica import VisitaDidactica
 
+# ==========================================
+# FUNCIÓN: Calcular promedio usando una lista de notas
+# ==========================================
+def calcularPromedioPracticante(practicanteSeleccionado, listaVisitasRegistradas):
+    # Creamos una lista limpia para almacenar exclusivamente las calificaciones numéricas del estudiante
+    listaNotasEstudiante = []
+
+    # Recorremos cada visita registrada en el sistema
+    for visitaActual in listaVisitasRegistradas:
+        # Verificamos si la visita corresponde al practicante que estamos evaluando
+        if visitaActual.practicante.cedula == practicanteSeleccionado.cedula:
+            try:
+                # Convertimos la calificación a número decimal y la añadimos a la lista
+                calificacionNumerica = float(visitaActual.calificacion)
+                listaNotasEstudiante.append(calificacionNumerica)
+            except ValueError:
+                pass
+
+    # Si la lista no contiene elementos, significa que no registra notas numéricas válidas
+    if len(listaNotasEstudiante) == 0:
+        return "Sin notas numéricas"
+
+    # Calculamos el promedio dividiendo la suma total de las notas entre la cantidad de notas almacenadas
+    promedioFinal = sum(listaNotasEstudiante) / len(listaNotasEstudiante)
+    return promedioFinal
+
+# ==========================================
+# MENÚ: Centros de práctica
+# ==========================================
 def menuCentrosPracticas(abbCentros, listaCentros):
-    """Menú para administrar los centros educativos donde se realizan las prácticas."""
     while True:
         print("\n--- MENÚ CENTROS DE PRÁCTICA ---")
-        print("1. Registrar")
-        print("2. Modificar")
-        print("3. Borrar")
-        print("4. Listar")
-        print("5. Salir")
+        print("1. Registrar centro")
+        print("2. Modificar centro")
+        print("3. Borrar centro")
+        print("4. Listar centros")
+        print("5. Volver al menú principal")
 
-        opcion = input("Elegir opción: ").strip()
+        opcionSeleccionada = input("Elegir opción: ").strip()
 
-        if opcion == "1":
+        if opcionSeleccionada == "1":
             print("\n[Registrar Centro]")
             idCentro = input("ID Centro: ").strip()
-            nombre = input("Nombre del centro: ").strip()
-            localidad = input("Localidad: ").strip()
+            nombreCentro = input("Nombre del centro: ").strip()
+            localidadCentro = input("Localidad: ").strip()
             try:
-                cuposTotales = int(input("Cupos totales: ").strip())
+                cuposTotalesCentro = int(input("Cupos totales: ").strip())
             except ValueError:
-                cuposTotales = 0
+                cuposTotalesCentro = 0
 
-            # Creamos el centro y seteamos los disponibles iguales a los totales al arrancar
-            nuevoCentro = CentroEducativo(idCentro, nombre, localidad, cuposTotales)
-            nuevoCentro.cuposDisponibles = cuposTotales
+            nuevoCentro = CentroEducativo(idCentro, nombreCentro, localidadCentro, cuposTotalesCentro)
+            nuevoCentro.cuposDisponibles = cuposTotalesCentro
 
-            # Lo metemos al Árbol Binario (ABB) y a la lista general
             abbCentros.insertar(nuevoCentro)
             listaCentros.append(nuevoCentro)
-            print(f"¡Centro '{nombre}' registrado con éxito!")
 
-        elif opcion == "2":
+            # Guardado directo en el archivo de texto de forma segura
+            try:
+                with open("persistencia/centros.txt", "a") as archivoCentros:
+                    archivoCentros.write(f"{idCentro}, {nombreCentro}, {localidadCentro}, {cuposTotalesCentro}\n")
+            except Exception as errorArchivo:
+                print("Error al guardar centro:", errorArchivo)
+
+            print(f"¡Centro '{nombreCentro}' registrado con éxito!")
+
+        elif opcionSeleccionada == "2":
             print("\n[Modificar Centro]")
             nombreBuscado = input("Ingrese el nombre del centro a modificar: ").strip().lower()
+
             centroEncontrado = None
-            for c in listaCentros:
-                if c.nombre.strip().lower() == nombreBuscado:
-                    centroEncontrado = c
+            for centroActual in listaCentros:
+                if centroActual.nombre.strip().lower() == nombreBuscado:
+                    centroEncontrado = centroActual
                     break
 
             if centroEncontrado:
-                print(f"Centro encontrado: {centroEncontrado}")
+                print(f"Centro encontrado: {centroEncontrado.nombre}")
                 nuevoNombre = input("Nuevo nombre (enter para omitir): ").strip()
                 nuevaLocalidad = input("Nueva localidad (enter para omitir): ").strip()
                 nuevosCupos = input("Nuevos cupos totales (enter para omitir): ").strip()
@@ -54,179 +91,213 @@ def menuCentrosPracticas(abbCentros, listaCentros):
                 if nuevoNombre: centroEncontrado.nombre = nuevoNombre
                 if nuevaLocalidad: centroEncontrado.localidad = nuevaLocalidad
                 if nuevosCupos:
-                    centroEncontrado.cuposTotales = int(nuevosCupos)
-                    centroEncontrado.cuposDisponibles = int(nuevosCupos)
+                    try:
+                        centroEncontrado.cuposTotales = int(nuevosCupos)
+                        centroEncontrado.cuposDisponibles = int(nuevosCupos)
+                    except ValueError:
+                        pass
                 print("¡Centro modificado con éxito!")
             else:
                 print("No se encontró ningún centro con ese nombre.")
 
-        elif opcion == "3":
+        elif opcionSeleccionada == "3":
             print("\n[Borrar Centro]")
             nombreBuscado = input("Ingrese el nombre del centro a borrar: ").strip().lower()
-            largoInicial = len(listaCentros)
-            listaCentros[:] = [c for c in listaCentros if c.nombre.strip().lower() != nombreBuscado]
+            largoInicialCentros = len(listaCentros)
+            listaCentros[:] = [centroActual for centroActual in listaCentros if centroActual.nombre.strip().lower() != nombreBuscado]
 
-            # Si borramos un centro, reiniciamos el árbol y lo armamos de nuevo para mantenerlo ordenado
-            if len(listaCentros) < largoInicial:
+            if len(listaCentros) < largoInicialCentros:
                 abbCentros.raiz = None
-                for c in listaCentros:
-                    abbCentros.insertar(c)
+                for centroActual in listaCentros:
+                    abbCentros.insertar(centroActual)
                 print("¡Centro borrado con éxito!")
             else:
                 print("No se encontró ningún centro con ese nombre.")
 
-        elif opcion == "4":
+        elif opcionSeleccionada == "4":
             print("\n--- LISTA DE CENTROS ---")
             if not listaCentros:
                 print("Todavía no hay centros registrados.")
             else:
-                for c in listaCentros:
-                    print(f"{c} | Cupos: {c.cuposDisponibles}/{c.cuposTotales}")
+                for centroActual in listaCentros:
+                    print(f"{centroActual} | Cupos: {centroActual.cuposDisponibles}/{centroActual.cuposTotales}")
 
-        elif opcion == "5":
-            break
-        else:
-            print("Opción no válida. Probá de nuevo.")
-
-
-def menuAdscriptores(listaAdscriptores):
-    """Menú para administrar los profesores adscriptores."""
-    while True:
-        print("\n--- MENÚ ADSCRIPTORES ---")
-        print("1. Registrar")
-        print("2. Modificar")
-        print("3. Borrar")
-        print("4. Listar")
-        print("5. Salir")
-
-        opcion = input("Elegir opción: ").strip()
-
-        if opcion == "1":
-            print("\n[Registrar Adscriptor]")
-            cedula = input("Cédula: ").strip()
-            nombre = input("Nombre: ").strip()
-            mail = input("Mail: ").strip()
-            contacto = input("Contacto opcional: ").strip()
-            centroPractica = input("Centro de práctica asignado: ").strip()
-            grado = input("Grado que dicta: ").strip()
-            dias = input("Días disponibles: ").strip()
-            horario = input("Horario disponible: ").strip()
-
-            nuevoAdscriptor = Adscriptor(cedula, nombre, mail, contacto, centroPractica, grado, dias, horario)
-            listaAdscriptores.append(nuevoAdscriptor)
-            print(f"¡Adscriptor '{nombre}' registrado con éxito!")
-
-        elif opcion == "2":
-            print("\n[Modificar Adscriptor]")
-            cedulaBuscada = input("Ingrese la cédula del adscriptor a modificar: ").strip()
-            encontrado = False
-            for a in listaAdscriptores:
-                if a.cedula == cedulaBuscada:
-                    nuevoNombre = input("Nuevo nombre (enter para omitir): ").strip()
-                    nuevoMail = input("Nuevo mail (enter para omitir): ").strip()
-                    if nuevoNombre: a.nombre = nuevoNombre
-                    if nuevoMail: a.mail = nuevoMail
-                    print("¡Adscriptor modificado con éxito!")
-                    encontrado = True
-                    break
-            if not encontrado:
-                print("No se encontró un adscriptor con esa cédula.")
-
-        elif opcion == "3":
-            print("\n[Borrar Adscriptor]")
-            cedulaBuscada = input("Ingrese la cédula del adscriptor a borrar: ").strip()
-            largoInicial = len(listaAdscriptores)
-            listaAdscriptores[:] = [a for a in listaAdscriptores if a.cedula != cedulaBuscada]
-            if len(listaAdscriptores) < largoInicial:
-                print("¡Adscriptor borrado con éxito!")
-            else:
-                print("No se encontró esa cédula.")
-
-        elif opcion == "4":
-            print("\n--- LISTA DE ADSCRIPTORES ---")
-            if not listaAdscriptores:
-                print("No hay adscriptores registrados.")
-            else:
-                for a in listaAdscriptores:
-                    print(a)
-
-        elif opcion == "5":
+        elif opcionSeleccionada == "5":
             break
         else:
             print("Opción no válida.")
 
 
-def menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores):
-    """Menú para registrar practicantes y asignarles su centro y adscriptor."""
+# ==========================================
+# MENÚ: Adscriptores
+# ==========================================
+def menuAdscriptores(listaAdscriptores):
+    while True:
+        print("\n--- MENÚ ADSCRIPTORES ---")
+        print("1. Registrar adscriptor")
+        print("2. Modificar adscriptor")
+        print("3. Borrar adscriptor")
+        print("4. Listar adscriptores")
+        print("5. Volver al menú principal")
+
+        opcionSeleccionada = input("Elegir opción: ").strip()
+
+        if opcionSeleccionada == "1":
+            print("\n[Registrar Adscriptor]")
+            cedulaAdscriptor = input("Cédula: ").strip()
+            nombreAdscriptor = input("Nombre: ").strip()
+            mailAdscriptor = input("Mail: ").strip()
+            contactoAdscriptor = input("Contacto opcional: ").strip()
+            centroPracticaAdscriptor = input("Centro de práctica asignado: ").strip()
+            gradoAdscriptor = input("Grado que dicta: ").strip()
+            diasAdscriptor = input("Días disponibles: ").strip()
+            horarioAdscriptor = input("Horario disponible: ").strip()
+
+            nuevoAdscriptor = Adscriptor(cedulaAdscriptor, nombreAdscriptor, mailAdscriptor, contactoAdscriptor, centroPracticaAdscriptor, gradoAdscriptor, diasAdscriptor, horarioAdscriptor)
+            listaAdscriptores.append(nuevoAdscriptor)
+
+            try:
+                with open("persistencia/adscriptores.txt", "a") as archivoAdscriptores:
+                    archivoAdscriptores.write(f"{cedulaAdscriptor}, {nombreAdscriptor}, {mailAdscriptor}, {contactoAdscriptor}, {gradoAdscriptor}, , {diasAdscriptor}, {horarioAdscriptor}, {centroPracticaAdscriptor}\n")
+            except Exception as errorArchivo:
+                print("Error al guardar adscriptor:", errorArchivo)
+
+            print(f"¡Adscriptor '{nombreAdscriptor}' registrado con éxito!")
+
+        elif opcionSeleccionada == "2":
+            print("\n[Modificar Adscriptor]")
+            cedulaBuscada = input("Ingrese la cédula del adscriptor a modificar: ").strip()
+            adscriptorEncontrado = False
+            for adscriptorActual in listaAdscriptores:
+                if adscriptorActual.cedula == cedulaBuscada:
+                    nuevoNombre = input(f"Nuevo nombre [Actual: {adscriptorActual.nombre}] (enter para omitir): ").strip()
+                    nuevoMail = input(f"Nuevo mail [Actual: {adscriptorActual.mail}] (enter para omitir): ").strip()
+                    nuevoContacto = input(f"Nuevo contacto [Actual: {adscriptorActual.contacto}] (enter para omitir): ").strip()
+                    nuevoGrado = input(f"Nuevo grado [Actual: {adscriptorActual.grado}] (enter para omitir): ").strip()
+
+                    if nuevoNombre: adscriptorActual.nombre = nuevoNombre
+                    if nuevoMail: adscriptorActual.mail = nuevoMail
+                    if nuevoContacto: adscriptorActual.contacto = nuevoContacto
+                    if nuevoGrado: adscriptorActual.grado = nuevoGrado
+
+                    print("¡Adscriptor modificado con éxito!")
+                    adscriptorEncontrado = True
+                    break
+            if not adscriptorEncontrado:
+                print("No se encontró un adscriptor con esa cédula.")
+
+        elif opcionSeleccionada == "3":
+            print("\n--- Borrar Adscriptor ---")
+            cedulaBuscada = input("Ingrese la cédula del adscriptor a borrar: ").strip()
+            largoInicialAdscriptores = len(listaAdscriptores)
+            listaAdscriptores[:] = [adscriptorActual for adscriptorActual in listaAdscriptores if adscriptorActual.cedula != cedulaBuscada]
+            if len(listaAdscriptores) < largoInicialAdscriptores:
+                print("¡Adscriptor borrado con éxito!")
+            else:
+                print("No se encontró esa cédula.")
+
+        elif opcionSeleccionada == "4":
+            print("\n--- LISTA DE ADSCRIPTORES ---")
+            if not listaAdscriptores:
+                print("No hay adscriptores registrados.")
+            else:
+                for adscriptorActual in listaAdscriptores:
+                    print(adscriptorActual)
+
+        elif opcionSeleccionada == "5":
+            break
+        else:
+            print("Opción no válida.")
+
+
+# ==========================================
+# MENÚ: Practicantes
+# ==========================================
+def menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores, listaVisitas):
     while True:
         print("\n--- MENÚ PRACTICANTES ---")
-        print("1. Registrar Practicante")
-        print("2. Modificar Practicante")
-        print("3. Borrar Practicante")
-        print("4. Listar Practicantes")
-        print("5. Asignar Centro y Descontar Cupo")
-        print("6. Salir")
+        print("1. Registrar practicante")
+        print("2. Modificar practicante")
+        print("3. Borrar practicante")
+        print("4. Listar practicantes (Con promedios en tiempo real)")
+        print("5. Asignar centro de práctica")
+        print("6. Volver al menú principal")
 
-        opcion = input("Elegir opción: ").strip()
+        opcionSeleccionada = input("Elegir opción: ").strip()
 
-        if opcion == "1":
+        if opcionSeleccionada == "1":
             print("\n[Registrar Practicante]")
-            cedula = input("Cédula: ").strip()
-            nombre = input("Nombre: ").strip()
-            mail = input("Mail: ").strip()
-            contacto = input("Contacto opcional: ").strip()
-            grado = input("Grado: ").strip()
+            cedulaPracticante = input("Cédula: ").strip()
+            nombrePracticante = input("Nombre: ").strip()
+            mailPracticante = input("Mail: ").strip()
+            contactoPracticante = input("Contacto opcional: ").strip()
+            gradoPracticante = input("Grado: ").strip()
 
-            nuevoPracticante = Practicante(cedula, nombre, mail, contacto, grado)
+            nuevoPracticante = Practicante(cedulaPracticante, nombrePracticante, mailPracticante, contactoPracticante, gradoPracticante)
             listaPracticantes.append(nuevoPracticante)
-            print(f"¡Practicante '{nombre}' registrado!")
 
-        elif opcion == "2":
+            try:
+                with open("persistencia/practicantes.txt", "a") as archivoPracticantes:
+                    archivoPracticantes.write(f"{cedulaPracticante}, {nombrePracticante}, {mailPracticante}, {contactoPracticante}, {gradoPracticante}\n")
+            except Exception as errorArchivo:
+                print("Error al guardar practicante:", errorArchivo)
+
+            print(f"¡Practicante '{nombrePracticante}' registrado!")
+
+        elif opcionSeleccionada == "2":
             print("\n[Modificar Practicante]")
             cedulaBuscada = input("Ingrese la cédula del practicante a modificar: ").strip()
-            encontrado = False
-            for p in listaPracticantes:
-                if p.cedula == cedulaBuscada:
-                    nuevoNombre = input("Nuevo nombre (enter para omitir): ").strip()
-                    if nuevoNombre: p.nombre = nuevoNombre
+            practicanteEncontrado = False
+            for practicanteActual in listaPracticantes:
+                if practicanteActual.cedula == cedulaBuscada:
+                    nuevoNombre = input(f"Nuevo nombre [Actual: {practicanteActual.nombre}] (enter para omitir): ").strip()
+                    nuevoMail = input(f"Nuevo mail [Actual: {practicanteActual.mail}] (enter para omitir): ").strip()
+                    nuevoContacto = input(f"Nuevo contacto [Actual: {practicanteActual.contacto}] (enter para omitir): ").strip()
+                    nuevoGrado = input(f"Nuevo grado [Actual: {practicanteActual.grado}] (enter para omitir): ").strip()
+
+                    if nuevoNombre: practicanteActual.nombre = nuevoNombre
+                    if nuevoMail: practicanteActual.mail = nuevoMail
+                    if nuevoContacto: practicanteActual.contacto = nuevoContacto
+                    if nuevoGrado: practicanteActual.grado = nuevoGrado
+
                     print("¡Practicante modificado con éxito!")
-                    encontrado = True
+                    practicanteEncontrado = True
                     break
-            if not encontrado:
+            if not practicanteEncontrado:
                 print("No se encontró un practicante con esa cédula.")
 
-        elif opcion == "3":
+        elif opcionSeleccionada == "3":
             print("\n[Borrar Practicante]")
             cedulaBuscada = input("Ingrese la cédula del practicante a borrar: ").strip()
 
-            # Si borramos un practicante que tenía centro, le devolvemos el cupo al colegio
-            for p in listaPracticantes:
-                if p.cedula == cedulaBuscada and p.centroObjeto:
-                    p.centroObjeto.cuposDisponibles += 1
+            for practicanteActual in listaPracticantes:
+                if practicanteActual.cedula == cedulaBuscada and hasattr(practicanteActual, 'centroObjeto') and practicanteActual.centroObjeto:
+                    practicanteActual.centroObjeto.cuposDisponibles += 1
 
-            largoInicial = len(listaPracticantes)
-            listaPracticantes[:] = [p for p in listaPracticantes if p.cedula != cedulaBuscada]
-            if len(listaPracticantes) < largoInicial:
+            largoInicialPracticantes = len(listaPracticantes)
+            listaPracticantes[:] = [practicanteActual for practicanteActual in listaPracticantes if practicanteActual.cedula != cedulaBuscada]
+            if len(listaPracticantes) < largoInicialPracticantes:
                 print("¡Practicante borrado y cupo devuelto al centro!")
             else:
                 print("No se encontró esa cédula.")
 
-        elif opcion == "4":
-            print("\n--- LISTA DE PRACTICANTES ---")
+        elif opcionSeleccionada == "4":
+            print("\n--- LISTA DE PRACTICANTES Y PROMEDIOS ---")
             if not listaPracticantes:
                 print("No hay practicantes registrados.")
             else:
-                for p in listaPracticantes:
-                    print(p)
+                for practicanteActual in listaPracticantes:
+                    promedioActual = calcularPromedioPracticante(practicanteActual, listaVisitas)
+                    print(f"Cédula: {practicanteActual.cedula} | Nombre: {practicanteActual.nombre} | Grado: {practicanteActual.grado} | 📊 Promedio: {promedioActual}")
 
-        elif opcion == "5":
+        elif opcionSeleccionada == "5":
             print("\n[Asignación de Práctica]")
             cedulaBuscada = input("Ingrese la cédula del practicante: ").strip()
 
             practicanteEncontrado = None
-            for p in listaPracticantes:
-                if p.cedula == cedulaBuscada:
-                    practicanteEncontrado = p
+            for practicanteActual in listaPracticantes:
+                if practicanteActual.cedula == cedulaBuscada:
+                    practicanteEncontrado = practicanteActual
                     break
 
             if not practicanteEncontrado:
@@ -235,268 +306,380 @@ def menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores):
                 if not listaCentros:
                     print("No hay centros educativos registrados.")
                 else:
-                    print(f"\nPracticante: {practicanteEncontrado.nombre} (Grado: {practicanteEncontrado.grado})")
-                    print("\nCentros disponibles y cupos:")
-                    for idx, c in enumerate(listaCentros):
-                        print(f"{idx + 1}. {c.nombre} (Localidad: {c.localidad}) - Cupos disponibles: {c.cuposDisponibles}")
+                    print(f"\nPracticante: {practicanteEncontrado.nombre}")
+                    print("\nCentros disponibles:")
+                    for indiceCentro, centroActual in enumerate(listaCentros):
+                        print(f"{indiceCentro + 1}. {centroActual.nombre} (Disponibles: {centroActual.cuposDisponibles})")
 
                     try:
                         seleccionCentro = int(input("Seleccione el número del centro: ")) - 1
                         if 0 <= seleccionCentro < len(listaCentros):
                             centroElegido = listaCentros[seleccionCentro]
 
-                            # Controlamos que queden lugares libres
                             if centroElegido.cuposDisponibles <= 0:
-                                print("¡Error! Este centro ya no tiene cupos disponibles.")
+                                print("¡Error! Este centro ya no tiene cupos.")
                                 continue
 
-                            # Buscamos de forma automática al adscriptor que corresponde a este centro
                             adscriptorEncontrado = None
-                            for a in listaAdscriptores:
-                                if a.centroPractica.strip().lower() == centroElegido.nombre.strip().lower():
-                                    adscriptorEncontrado = a
+                            for adscriptorActual in listaAdscriptores:
+                                if adscriptorActual.centroPractica.strip().lower() == centroElegido.nombre.strip().lower():
+                                    adscriptorEncontrado = adscriptorActual
                                     break
 
-                            # Si lo encontramos, le sugerimos sus días y horarios para ahorrar tiempo
                             if adscriptorEncontrado:
-                                print(f"\n-> Adscriptor responsable: {adscriptorEncontrado.nombre}")
-                                print(f"-> Días y Horarios del Adscriptor: {adscriptorEncontrado.dias} | {adscriptorEncontrado.horario}")
                                 nombreAdscriptorTxt = adscriptorEncontrado.nombre
                                 diasSugeridos = adscriptorEncontrado.dias
                                 horarioSugerido = adscriptorEncontrado.horario
                             else:
-                                print("\n-> No hay un adscriptor registrado para este centro.")
                                 nombreAdscriptorTxt = "Sin adscriptor"
                                 diasSugeridos = "A definir"
                                 horarioSugerido = "A definir"
 
-                            # Presionando Enter aceptamos lo sugerido o podemos escribir otra cosa
-                            diasInput = input(f"\nIngrese días de práctica [Sugerido: {diasSugeridos}] (Enter para usar): ").strip()
-                            dias = diasInput if diasInput else diasSugeridos
+                            diasInput = input(f"\nDías de práctica [Sugerido: {diasSugeridos}] (Enter para aceptar): ").strip()
+                            diasAsignados = diasInput if diasInput else diasSugeridos
 
-                            horarioInput = input(f"Ingrese horario [Sugerido: {horarioSugerido}] (Enter para usar): ").strip()
-                            horario = horarioInput if horarioInput else horarioSugerido
+                            horarioInput = input(f"Horario [Sugerido: {horarioSugerido}] (Enter para aceptar): ").strip()
+                            horarioAsignado = horarioInput if horarioInput else horarioSugerido
 
-                            # Descontamos un cupo del centro elegido
                             centroElegido.cuposDisponibles -= 1
 
-                            # Guardamos toda la info en el objeto practicante
                             practicanteEncontrado.centroAsignado = centroElegido.nombre
                             practicanteEncontrado.adscriptorAsignado = nombreAdscriptorTxt
-                            practicanteEncontrado.diasPractica = dias
-                            practicanteEncontrado.horarioPractica = horario
+                            practicanteEncontrado.diasPractica = diasAsignados
+                            practicanteEncontrado.horarioPractica = horarioAsignado
                             practicanteEncontrado.centroObjeto = centroElegido
 
-                            print(f"¡Asignación exitosa! Cupos restantes en {centroElegido.nombre}: {centroElegido.cuposDisponibles}")
+                            print(f"¡Asignación exitosa! Quedan {centroElegido.cuposDisponibles} cupos.")
                         else:
-                            print("Número de centro inválido.")
+                            print("Número inválido.")
                     except ValueError:
                         print("Por favor, ingrese un número válido.")
 
-        elif opcion == "6":
+        elif opcionSeleccionada == "6":
             break
         else:
             print("Opción no válida.")
 
 
-def menuDocenteDidactica(listaDocentes, listaPracticantes):
-    """Menú para gestionar docentes y armar el tribunal con opción flexible para el 3er miembro."""
+# ==========================================
+# MENÚ: Docente de Didáctica, Visitas y Tribunal
+# ==========================================
+def menuDocenteDidactica(listaDocentes, listaAdscriptores, listaPracticantes, listaVisitas):
     while True:
         print("\n--- MENÚ DOCENTE DIDÁCTICA Y TRIBUNAL ---")
-        print("1. Registrar Docente")
-        print("2. Modificar Docente")
-        print("3. Listar Docentes")
-        print("4. Armar Tribunal Final (Defensa)")
-        print("5. Salir")
+        print("1. Registrar docente")
+        print("2. Modificar docente")
+        print("3. Listar docentes")
+        print("4. Registrar nueva visita a practicante")
+        print("5. Calcular promedio final de visitas de un practicante")
+        print("6. Listar todas las visitas realizadas")
+        print("7. Armar tribunal final")
+        print("8. Volver al menú principal")
 
-        opcion = input("Elegir opción: ").strip()
+        opcionSeleccionada = input("Elegir opción: ").strip()
 
-        if opcion == "1":
+        if opcionSeleccionada == "1":
             print("\n[Registrar Docente]")
-            cedula = input("Cédula: ").strip()
-            nombre = input("Nombre: ").strip()
-            mail = input("Mail: ").strip()
-            contacto = input("Contacto opcional: ").strip()
-            asignatura = input("Asignatura / Especialidad / Cargo: ").strip()
+            cedulaDocente = input("Cédula: ").strip()
+            nombreDocente = input("Nombre: ").strip()
+            mailDocente = input("Mail: ").strip()
+            contactoDocente = input("Contacto opcional: ").strip()
+            asignaturaDocente = input("Asignatura / Cargo: ").strip()
 
-            nuevoDocente = DocenteDidactica(cedula, nombre, mail, contacto, asignatura)
+            nuevoDocente = DocenteDidactica(cedulaDocente, nombreDocente, mailDocente, contactoDocente, asignaturaDocente)
             listaDocentes.append(nuevoDocente)
-            print(f"¡Docente '{nombre}' registrado!")
 
-        elif opcion == "2":
+            try:
+                with open("persistencia/docentes_didactica.txt", "a") as archivoDocentes:
+                    archivoDocentes.write(f"{cedulaDocente}, {nombreDocente}, {asignaturaDocente}\n")
+            except Exception as errorArchivo:
+                print("Error al guardar docente:", errorArchivo)
+
+            print(f"¡Docente '{nombreDocente}' registrado y guardado con éxito!")
+
+        elif opcionSeleccionada == "2":
             print("\n[Modificar Docente]")
             cedulaBuscada = input("Ingrese la cédula del docente a modificar: ").strip()
-            encontrado = False
-            for d in listaDocentes:
-                if d.cedula == cedulaBuscada:
-                    nuevoNombre = input("Nuevo nombre (enter para omitir): ").strip()
-                    if nuevoNombre: d.nombre = nuevoNombre
+            docenteEncontrado = False
+            for docenteActual in listaDocentes:
+                if docenteActual.cedula == cedulaBuscada:
+                    nuevoNombre = input(f"Nuevo nombre [Actual: {docenteActual.nombre}] (enter para omitir): ").strip()
+                    nuevoMail = input(f"Nuevo mail [Actual: {docenteActual.mail}] (enter para omitir): ").strip()
+                    nuevoContacto = input(f"Nuevo contacto [Actual: {docenteActual.contacto}] (enter para omitir): ").strip()
+                    nuevaAsignatura = input(f"Nuevo cargo/asignatura [Actual: {docenteActual.asignatura}] (enter para omitir): ").strip()
+
+                    if nuevoNombre: docenteActual.nombre = nuevoNombre
+                    if nuevoMail: docenteActual.mail = nuevoMail
+                    if nuevoContacto: docenteActual.contacto = nuevoContacto
+                    if nuevaAsignatura: docenteActual.asignatura = nuevaAsignatura
+
                     print("¡Docente modificado con éxito!")
-                    encontrado = True
+                    docenteEncontrado = True
                     break
-            if not encontrado:
+            if not docenteEncontrado:
                 print("No se encontró un docente con esa cédula.")
 
-        elif opcion == "3":
+        elif opcionSeleccionada == "3":
             print("\n--- LISTA DE DOCENTES ---")
             if not listaDocentes:
                 print("No hay docentes registrados.")
             else:
-                for d in listaDocentes:
-                    print(f"Cédula: {d.cedula} | Nombre: {d.nombre} | Cargo/Esc: {d.asignatura}")
+                for docenteActual in listaDocentes:
+                    print(f"Cédula: {docenteActual.cedula} | Nombre: {docenteActual.nombre} | Cargo: {docenteActual.asignatura}")
 
-        elif opcion == "4":
-            print("\n[Gestión de Tribunal Final para Defensa]")
+        elif opcionSeleccionada == "4":
+            print("\n[Registrar Visita a Practicante]")
+            if not listaDocentes:
+                print("Primero debe registrar docentes de didáctica.")
+            elif not listaPracticantes:
+                print("No hay practicantes registrados.")
+            else:
+                cedulaDocenteVisita = input("1. Ingrese la Cédula del Docente de Didáctica: ").strip()
+                docenteEncontrado = None
+                for docenteActual in listaDocentes:
+                    if docenteActual.cedula.strip() == cedulaDocenteVisita:
+                        docenteEncontrado = docenteActual
+                        break
+
+                if not docenteEncontrado:
+                    print("No se encontró ningún docente con esa cédula.")
+                    continue
+
+                cedulaPracticanteVisita = input("2. Ingrese la Cédula del Practicante: ").strip()
+                practicanteEncontrado = None
+                for practicanteActual in listaPracticantes:
+                    if practicanteActual.cedula.strip() == cedulaPracticanteVisita:
+                        practicanteEncontrado = practicanteActual
+                        break
+
+                if not practicanteEncontrado:
+                    print("No se encontró ningún practicante con esa cédula.")
+                    continue
+
+                fechaVisita = input("3. Fecha de la visita (ej: 09/09/2026): ").strip()
+                observacionesVisita = input("4. Observaciones de la clase: ").strip()
+                calificacionVisita = input("5. Calificación o Nota numérica (ej: 9 o 8.5): ").strip()
+
+                nuevaVisita = VisitaDidactica(docenteEncontrado, practicanteEncontrado, fechaVisita, calificacionVisita, observacionesVisita)
+                listaVisitas.append(nuevaVisita)
+
+                try:
+                    with open("persistencia/visitas.txt", "a") as archivoVisitas:
+                        archivoVisitas.write(f"{docenteEncontrado.cedula}, {practicanteEncontrado.cedula}, {fechaVisita}, {calificacionVisita}, {observacionesVisita}\n")
+                except Exception as errorArchivo:
+                    print("Error al guardar visita:", errorArchivo)
+
+                promedioActual = calcularPromedioPracticante(practicanteEncontrado, listaVisitas)
+                print(f"\n ¡Visita registrada con éxito!")
+                print(f"    Promedio actual del practicante: {promedioActual}")
+
+        elif opcionSeleccionada == "5":
+            print("\n[Calcular Promedio Final de Visitas]")
             if not listaPracticantes:
                 print("No hay practicantes registrados.")
-            elif len(listaDocentes) < 2:
-                print(f"Se necesitan al menos 2 docentes base. Hay {len(listaDocentes)} registrados.")
             else:
-                print("\nPracticantes disponibles:")
-                for p in listaPracticantes:
-                    print(f"- Cédula: {p.cedula} | Nombre: {p.nombre}")
+                cedulaBuscada = input("Ingrese la cédula del practicante: ").strip()
+                practicanteBuscado = None
+                for practicanteActual in listaPracticantes:
+                    if practicanteActual.cedula.strip() == cedulaBuscada:
+                        practicanteBuscado = practicanteActual
+                        break
 
-                cedPrac = input("Ingrese la Cédula o Nombre del practicante a evaluar: ").strip().lower()
+                if not practicanteBuscado:
+                    print("No se encontró un practicante con esa cédula.")
+                else:
+                    promedioFinal = calcularPromedioPracticante(practicanteBuscado, listaVisitas)
+                    print(f"\n--- INFORME FINAL DE VISITAS ---")
+                    print(f"Practicante: {practicanteBuscado.nombre}")
+                    print(f"Cédula: {practicanteBuscado.cedula}")
+                    print(f"Promedio final de notas: {promedioFinal}")
+
+        elif opcionSeleccionada == "6":
+            print("\n--- LISTA DE VISITAS REGISTRADAS ---")
+            if not listaVisitas:
+                print("Aún no hay visitas registradas.")
+            else:
+                for visitaActual in listaVisitas:
+                    print(visitaActual)
+
+        elif opcionSeleccionada == "7":
+            print("\n[Gestión de Tribunal Final]")
+            if not listaPracticantes:
+                print("No hay practicantes registrados.")
+            elif len(listaDocentes) < 1 and len(listaAdscriptores) < 1:
+                print("Se necesitan docentes o adscriptores registrados.")
+            else:
+                print("\nPracticantes:")
+                for practicanteActual in listaPracticantes:
+                    print(f"- Cédula: {practicanteActual.cedula} | Nombre: {practicanteActual.nombre}")
+
+                cedulaPracticanteElegido = input("Ingrese la Cédula del practicante a evaluar: ").strip()
                 practicanteElegido = None
-                for p in listaPracticantes:
-                    if p.cedula.strip().lower() == cedPrac or p.nombre.strip().lower() == cedPrac:
-                        practicanteElegido = p
+                for practicanteActual in listaPracticantes:
+                    if practicanteActual.cedula.strip() == cedulaPracticanteElegido:
+                        practicanteElegido = practicanteActual
                         break
 
                 if not practicanteElegido:
-                    print("No se encontró al practicante.")
+                    print("Practicante no encontrado.")
                     continue
 
-                print(f"\nDocentes/Directores disponibles:")
-                for d in listaDocentes:
-                    print(f"- Cédula: {d.cedula} | Nombre: {d.nombre} | Cargo: {d.asignatura}")
-
-                def buscarDocentePorInput(mensaje):
+                def buscarMiembroTribunal(mensajePrompt):
                     while True:
-                        ingreso = input(mensaje).strip().lower()
-                        for d in listaDocentes:
-                            if d.cedula.strip().lower() == ingreso or d.nombre.strip().lower() == ingreso:
-                                return d
-                        print("Docente no encontrado. Intente de nuevo.")
+                        cedulaIngresada = input(mensajePrompt).strip()
+                        for docenteActual in listaDocentes:
+                            if docenteActual.cedula.strip() == cedulaIngresada:
+                                return docenteActual
+                        for adscriptorActual in listaAdscriptores:
+                            if adscriptorActual.cedula.strip() == cedulaIngresada:
+                                return adscriptorActual
+                        print("No se encontró ningún docente ni adscriptor con esa cédula. Intente de nuevo.")
 
-                print("\nAsignando los miembros del tribunal:")
-                doc1 = buscarDocentePorInput("Ingrese el 1er Miembro (Cédula o Nombre): ")
-                doc2 = buscarDocentePorInput("Ingrese el 2do Miembro (Cédula o Nombre): ")
+                print("\nAsignando Tribunal:")
+                primerMiembro = buscarMiembroTribunal("Cédula del 1er Miembro (Docente/Adscriptor): ")
+                segundoMiembro = buscarMiembroTribunal("Cédula del 2do Miembro (Docente/Adscriptor): ")
 
-                print("\n--- 3er MIEMBRO DEL TRIBUNAL ---")
-                print("1. Seleccionar docente existente")
-                print("2. Agregar uno nuevo en el momento (Director, Adscriptor, etc.)")
-                opcionTercero = input("Seleccione una opción: ").strip()
+                print("\n3er Miembro:")
+                print("1. Seleccionar existente (Docente o Adscriptor)")
+                print("2. Crear uno nuevo en el momento")
+                opcionTercero = input("Elija opción: ").strip()
 
-                doc3 = None
                 if opcionTercero == "1":
-                    doc3 = buscarDocentePorInput("Ingrese el 3er Miembro existente: ")
-                elif opcionTercero == "2":
-                    print("\n[Registrar Nuevo Miembro]")
-                    cedula3 = input("Cédula: ").strip()
-                    nombre3 = input("Nombre: ").strip()
-                    mail3 = input("Mail (opcional): ").strip()
-                    contacto3 = input("Contacto (opcional): ").strip()
-                    cargo3 = input("Especialidad o Cargo (ej: Director): ").strip()
-
-                    doc3 = DocenteDidactica(cedula3, nombre3, mail3 if mail3 else "N/D", contacto3 if contacto3 else "N/D", cargo3)
-                    listaDocentes.append(doc3)
-                    print(f"¡Nuevo miembro '{nombre3}' registrado y sumado al tribunal!")
+                    tercerMiembro = buscarMiembroTribunal("Cédula del 3er Miembro: ")
                 else:
-                    doc3 = buscarDocentePorInput("Ingrese el 3er Miembro existente: ")
+                    cedulaNuevoDocente = input("Cédula: ").strip()
+                    nombreNuevoDocente = input("Nombre: ").strip()
+                    cargoNuevoDocente = input("Cargo o Asignatura: ").strip()
+                    tercerMiembro = DocenteDidactica(cedulaNuevoDocente, nombreNuevoDocente, "N/D", "N/D", cargoNuevoDocente)
+                    listaDocentes.append(tercerMiembro)
 
-                nuevoTribunal = TribunalFinal(practicanteElegido, doc1, doc2, doc3)
-                print("\n¡Tribunal Final asignado con éxito!")
+                    try:
+                        with open("persistencia/docentes_didactica.txt", "a") as archivoDocentes:
+                            archivoDocentes.write(f"{cedulaNuevoDocente}, {nombreNuevoDocente}, {cargoNuevoDocente}\n")
+                    except Exception as errorArchivo:
+                        print("Aviso al guardar en archivo:", errorArchivo)
+
+                nuevoTribunal = TribunalFinal(practicanteElegido, primerMiembro, segundoMiembro, tercerMiembro)
+                print("\n¡Tribunal asignado con éxito!")
                 print(nuevoTribunal)
 
-        elif opcion == "5":
+        elif opcionSeleccionada == "8":
             break
         else:
             print("Opción no válida.")
 
 
+# ==========================================
+# FUNCIÓN PRINCIPAL (MAIN)
+# ==========================================
 def main():
-    """Función principal: carga los archivos TXT al arrancar y muestra el menú general."""
     abbCentros = ABBCentros()
     listaCentros = []
     listaAdscriptores = []
     listaPracticantes = []
     listaDocentes = []
+    listaVisitas = []
 
-    # 1. Cargamos los Centros Educativos desde el archivo de texto al iniciar el programa
+    # 1. Cargamos centros guardados
     try:
-        with open("persistencia/centros.txt", "r", encoding="utf-8") as archivo:
-            for linea in archivo:
-                centro = CentroEducativo.desdeLineaTxt(linea)
-                if centro:
-                    centro.cuposDisponibles = int(centro.cuposTotales)
-                    abbCentros.insertar(centro)
-                    listaCentros.append(centro)
+        with open("persistencia/centros.txt", "r") as archivoCentros:
+            for lineaActual in archivoCentros:
+                centroActual = CentroEducativo.desdeLineaTxt(lineaActual)
+                if centroActual:
+                    centroActual.cuposDisponibles = int(centroActual.cuposTotales)
+                    abbCentros.insertar(centroActual)
+                    listaCentros.append(centroActual)
     except FileNotFoundError:
         pass
 
-    # 2. Cargamos los Adscriptores desde su archivo correspondiente
+    # 2. Cargamos adscriptores guardados
     try:
-        with open("persistencia/adscriptores.txt", "r", encoding="utf-8") as archivo:
-            for linea in archivo:
-                partes = [p.strip() for p in linea.split(",")]
-                if len(partes) >= 9:
-                    nuevoAdsc = Adscriptor(
-                        cedula=partes[0], nombre=partes[1], mail=partes[2],
-                        contacto=partes[3], centroPractica=partes[8],
-                        grado=partes[4], dias=partes[6], horario=partes[7]
+        with open("persistencia/adscriptores.txt", "r") as archivoAdscriptores:
+            for lineaActual in archivoAdscriptores:
+                partesLinea = [parte.strip() for parte in lineaActual.split(",")]
+                if len(partesLinea) >= 9:
+                    nuevoAdscriptor = Adscriptor(
+                        cedula=partesLinea[0], nombre=partesLinea[1], mail=partesLinea[2],
+                        contacto=partesLinea[3], centroPractica=partesLinea[8],
+                        grado=partesLinea[4], dias=partesLinea[6], horario=partesLinea[7]
                     )
-                    listaAdscriptores.append(nuevoAdsc)
+                    listaAdscriptores.append(nuevoAdscriptor)
     except FileNotFoundError:
         pass
 
-    # 3. Cargamos los Practicantes registrados previamente
+    # 3. Cargamos practicantes guardados
     try:
-        with open("persistencia/practicantes.txt", "r", encoding="utf-8") as archivo:
-            for linea in archivo:
-                partes = [p.strip() for p in linea.split(",")]
-                if len(partes) >= 5:
-                    nuevoPrac = Practicante(partes[0], partes[1], partes[2], partes[3], partes[4])
-                    listaPracticantes.append(nuevoPrac)
+        with open("persistencia/practicantes.txt", "r") as archivoPracticantes:
+            for lineaActual in archivoPracticantes:
+                partesLinea = [parte.strip() for parte in lineaActual.split(",")]
+                if len(partesLinea) >= 5:
+                    nuevoPracticante = Practicante(partesLinea[0], partesLinea[1], partesLinea[2], partesLinea[3], partesLinea[4])
+                    listaPracticantes.append(nuevoPracticante)
     except FileNotFoundError:
         pass
 
-    # 4. Cargamos los Docentes de Didáctica desde el archivo de texto
+    # 4. Cargamos docentes de didáctica guardados
     try:
-        with open("persistencia/docentes_didactica.txt", "r", encoding="utf-8") as archivo:
-            for linea in archivo:
-                partes = [p.strip() for p in linea.split(",")]
-                if len(partes) >= 3:
+        with open("persistencia/docentes_didactica.txt", "r") as archivoDocentes:
+            for lineaActual in archivoDocentes:
+                partesLinea = [parte.strip() for parte in lineaActual.split(",")]
+                if len(partesLinea) >= 3:
                     nuevoDocente = DocenteDidactica(
-                        cedula=partes[0], nombre=partes[1],
-                        mail="N/D", contacto="N/D", asignatura=partes[2]
+                        cedula=partesLinea[0], nombre=partesLinea[1],
+                        mail="N/D", contacto="N/D", asignatura=partesLinea[2]
                     )
                     listaDocentes.append(nuevoDocente)
     except FileNotFoundError:
         pass
 
-    # Bucle principal del sistema donde mostramos el menú de navegación general
+    # 5. Cargamos las visitas guardadas y las vinculamos correctamente
+    try:
+        with open("persistencia/visitas.txt", "r") as archivoVisitas:
+            for lineaActual in archivoVisitas:
+                partesLinea = [parte.strip() for parte in lineaActual.split(",")]
+                if len(partesLinea) >= 5:
+                    cedulaDocenteArchivo, cedulaPracticanteArchivo, fechaVisitaArchivo, calificacionVisitaArchivo, observacionesVisitaArchivo = partesLinea[0], partesLinea[1], partesLinea[2], partesLinea[3], partesLinea[4]
+
+                    docenteObj = None
+                    for docenteActual in listaDocentes:
+                        if docenteActual.cedula.strip() == cedulaDocenteArchivo:
+                            docenteObj = docenteActual
+                            break
+
+                    practicanteObj = None
+                    for practicanteActual in listaPracticantes:
+                        if practicanteActual.cedula.strip() == cedulaPracticanteArchivo:
+                            practicanteObj = practicanteActual
+                            break
+
+                    if docenteObj and practicanteObj:
+                        nuevaVisita = VisitaDidactica(docenteObj, practicanteObj, fechaVisitaArchivo, calificacionVisitaArchivo, observacionesVisitaArchivo)
+                        listaVisitas.append(nuevaVisita)
+    except FileNotFoundError:
+        pass
+
+    # Menú Principal del Programa
     while True:
         print("\n==========================================")
         print("    SISTEMA DE GESTIÓN DE PRÁCTICAS      ")
         print("==========================================")
-        print("1. Centros de Prácticas")
-        print("2. Adscriptores")
-        print("3. Practicantes")
-        print("4. Docente Didáctica y Tribunal")
-        print("5. Salir")
+        print("1. Gestionar Centros de Prácticas")
+        print("2. Gestionar Adscriptores")
+        print("3. Gestionar Practicantes")
+        print("4. Docente Didáctica, Visitas y Tribunal")
+        print("5. Salir del sistema")
 
-        opcion = input("Elegir opción: ").strip()
+        opcionSeleccionada = input("Elegir opción: ").strip()
 
-        if opcion == "1":
+        if opcionSeleccionada == "1":
             menuCentrosPracticas(abbCentros, listaCentros)
-        elif opcion == "2":
+        elif opcionSeleccionada == "2":
             menuAdscriptores(listaAdscriptores)
-        elif opcion == "3":
-            menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores)
-        elif opcion == "4":
-            menuDocenteDidactica(listaDocentes, listaPracticantes)
-        elif opcion == "5":
+        elif opcionSeleccionada == "3":
+            menuPracticantes(listaPracticantes, listaCentros, listaAdscriptores, listaVisitas)
+        elif opcionSeleccionada == "4":
+            menuDocenteDidactica(listaDocentes, listaAdscriptores, listaPracticantes, listaVisitas)
+        elif opcionSeleccionada == "5":
             print("\n¡Saliendo del sistema. Hasta luego!")
             break
         else:
