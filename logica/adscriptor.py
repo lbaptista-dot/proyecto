@@ -1,8 +1,8 @@
-from logica.persona import Persona
+from logica.docente import Docente
 
-class Adscriptor(Persona):
-    def __init__(self, cedula, nombre, mail, contacto, centroPractica, grado, dias, horario):
-        super().__init__(cedula, nombre, mail, contacto)
+class Adscriptor(Docente):
+    def __init__(self, cedula, nombre, mail, contacto, centroPractica, grado, dias, horario, especialidad="Informática"):
+        super().__init__(cedula, nombre, mail, contacto, especialidad)
         self.centroPractica = centroPractica
         self.grado = grado
         self.dias = dias
@@ -12,6 +12,6 @@ class Adscriptor(Persona):
         base = super().__str__()
         return (
             f"{base}\n"
-            f" • Centro: {self.centroPractica} | Grado: {self.grado}\n"
-            f" • Disponibilidad: {self.dias} ({self.horario})"
+            f" • Centro de Práctica: {self.centroPractica}\n"
+            f" • Grado: {self.grado} | Días: {self.dias} | Horario: {self.horario}"
         )

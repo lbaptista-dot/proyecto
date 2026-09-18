@@ -1,4 +1,3 @@
-112345678, Laura Rodriguez, l.rodriguez@mail.com, 099123456, 6, Informatica, Lunes y Miércoles, 13:00 a 17:00, Liceo 2
-23456789, Carlos Mendez, c.mendez@mail.com, 098234567, 5, Informatica, Martes y Jueves, 08:00 a 12:00, Liceo 5
-34567890, Mariana Silva, m.silva@mail.com, 097345678, 4, Filosofia, Miércoles y Viernes, 13:00 a 17:00, Liceo 4
-45678901, Gonzalo Perez, g.perez@mail.com, 096456789, 5, Filosofia, Lunes y Jueves, 08:00 a 12:00, Liceo 3
+112345678, Laura Rodriguez, l.rodriguez@mail.com, 099123456, 6, , Lunes y Miércoles, 13:00 a 17:00, Liceo 2
+23456789, Carlos Mendez, c.mendez@mail.com, 098234567, 5, , Martes y Jueves, 08:00 a 12:00, Liceo 5
+34567890, Mariana Silva, marianaSilva@gmail.com, 097345678, 2, , Miércoles y Viernes, 13:00 a 17:00, Liceo 4

@@ -2,22 +2,16 @@ from logica.cola_fifo import ColaFIFO
 
 class CentroEducativo:
     def __init__(self, idCentro, nombre, localidad, cuposTotales):
+        # Datos principales que identifican y describen al centro educativo
         self.idCentro = idCentro
         self.nombre = nombre
         self.localidad = localidad
         self.cuposTotales = int(cuposTotales)
-        self.estudiantesAsignados = []
-        self.colaReserva = ColaFIFO()
 
-    @staticmethod
-    def desdeLineaTxt(linea):
-        # Transforma una línea del archivo de texto en un objeto CentroEducativo usable
-        datos = linea.strip().split(",")
-        if len(datos) >= 4:
-            idCentro, nombre, localidad, cuposTotales = datos[:4]
-            return CentroEducativo(idCentro, nombre, localidad, int(cuposTotales))
-        return None
+        # Estructuras para gestionar la capacidad y las inscripciones
+        self.estudiantesAsignados = []  # Lista con los practicantes que ya lograron un cupo
+        self.colaReserva = ColaFIFO()   # Cola FIFO para los estudiantes que queden en lista de espera
 
     def __str__(self):
-        # Lo que muestra la consola al listar los centros de forma clara
+        # Formato claro y ordenado que se muestra en la consola al listar los centros
         return f"[{self.idCentro}] {self.nombre} ({self.localidad}) - Cupos totales: {self.cuposTotales}"
