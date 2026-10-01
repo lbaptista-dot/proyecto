@@ -1,3 +1,6 @@
-18765432,Andrea Barisano,Informatica,5
-29876543,Eduardo Cantos,Informática,4
-30987654,Fabian Frola,Informatica,3
+12345678, Andrea Barisano, Informatica
+29876543, Eduardo Cantos, Informática
+30987654, Fabian Frola, Informatica
+34159744, Mirta Gomez, Informatica
+87654321, Juan Pintos, Filosofia
+12987634, Romina Soria, Informatica

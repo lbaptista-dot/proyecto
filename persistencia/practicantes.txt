@@ -1,4 +1,3 @@
-49758999,Luciana Baptista,4,Liceo 2,Habilitado
-51234567,Maria Gomez,3,Liceo 5,Habilitado
-48901234,Lucas Ferreira,2,Liceo 4,Habilitado
-53456789,Ana Martinez,4,Liceo 3,No habilitado
+40509042, Silvia Estelda, silviaestelda@gmail.com, 098626501, 1, Habilitado
+12345678, Luciana Batista, lucianabatista@gmai.com, 091232323, 4, Habilitado
+3456789, Facundo Moreira, facundomoreir@gmail.com, 098172635, 2, Habilitado

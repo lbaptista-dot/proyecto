@@ -1,3 +1,2 @@
-5678,Liceo 5,Salto,4,VACIO,VACIO
-9123,Liceo 4,Salto,4,VACIO,VACIO
-4367,Liceo 3,Salto,3,VACIO,VACIO
+1234, Liceo 3, Salto, 9
+5678, Liceo 7, Salto, 3
