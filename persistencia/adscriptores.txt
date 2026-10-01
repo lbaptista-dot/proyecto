@@ -1,3 +1,1 @@
-112345678, Laura Rodriguez, l.rodriguez@mail.com, 099123456, 6, , Lunes y Miércoles, 13:00 a 17:00, Liceo 2
-23456789, Carlos Mendez, c.mendez@mail.com, 098234567, 5, , Martes y Jueves, 08:00 a 12:00, Liceo 5
-34567890, Mariana Silva, marianaSilva@gmail.com, 097345678, 2, , Miércoles y Viernes, 13:00 a 17:00, Liceo 4
+12345678, Matias Ventura, mv@gmail.com, 099912345, 7mo, , miercoles y jueves de 07:00 a 08:20, 07:00 a 08:20, Liceo 1

@@ -28,7 +28,7 @@ class GestionCentros:
         return self.centros
 
     def estaVacia(self):
-        # Devuelve Verdadero si todavía no hay ningún centro registrado
+        # Devuelve Verdadero si todavía no hay ningún centro registrado (verificando si la cantidad es igual a 0)
         return len(self.centros) == 0
 
     def cantidad(self):

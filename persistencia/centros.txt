@@ -1,2 +1,2 @@
-1234, Liceo 3, Salto, 9
-5678, Liceo 7, Salto, 3
+123, Liceo 1, Salto, 1
+456, Liceo 2, Salto, 2

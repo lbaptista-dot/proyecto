@@ -1,3 +1,5 @@
+# CLASE NODO (Para construir el Árbol Binario)
+# ==========================================
 class Nodo:
     def __init__(self, centro):
         self.__centro = centro  # El objeto CentroEducativo que guarda este nodo
@@ -29,9 +31,41 @@ class Nodo:
         self.__derecha = nodo
 
 
+# ==========================================
+class Nodo:
+    def __init__(self, dato):
+        self.__dato = dato
+        self.__izquierda = None
+        self.__derecha = None
+
+    @property
+    def dato(self):
+        return self.__dato
+
+    @dato.setter
+    def dato(self, valor):
+        self.__dato = valor
+
+    @property
+    def izquierda(self):
+        return self.__izquierda
+
+    @izquierda.setter
+    def izquierda(self, nodo):
+        self.__izquierda = nodo
+
+    @property
+    def derecha(self):
+        return self.__derecha
+
+    @derecha.setter
+    def derecha(self, nodo):
+        self.__derecha = nodo
+
+
 class ABBCentros:
     def __init__(self):
-        self.__raiz = None  # El árbol arranca vacío
+        self.__raiz = None
 
     @property
     def raiz(self):
@@ -44,49 +78,50 @@ class ABBCentros:
     def estaVacio(self):
         return self.__raiz is None
 
-    # ---------- Insertar ordenado por nombre del centro ----------
+    # ---------- Agregar un nodo ordenado por ID ----------
 
     def insertar(self, centro):
-        # Arrancamos el recorrido recursivo desde la raíz actual
-        self.__raiz = self.__insertarRecursivo(self.__raiz, centro)
+        self.__raiz = self.__agregarRecursivo(self.__raiz, centro)
 
-    def __insertarRecursivo(self, nodo, centro):
-        # Caso base: si llegamos a un espacio libre, creamos y devolvemos el nuevo nodo
+    def __agregarRecursivo(self, nodo, centro):
+        # Caso base: encontramos el lugar donde crear el nuevo nodo.
+        # Comparamos por idCentro (convertido a string/minúscula para ordenar de forma segura)
         if nodo is None:
             return Nodo(centro)
 
-        # Comparamos alfabéticamente en minúsculas los nombres de los centros
-        if centro.nombre.lower() < nodo.centro.nombre.lower():
-            nodo.izquierda = self.__insertarRecursivo(nodo.izquierda, centro)
-        elif centro.nombre.lower() > nodo.centro.nombre.lower():
-            nodo.derecha = self.__insertarRecursivo(nodo.derecha, centro)
-        # Si tienen exactamente el mismo nombre, no se duplica y se ignora
+        id_nuevo = str(centro.idCentro).strip().lower()
+        id_actual = str(nodo.dato.idCentro).strip().lower()
+
+        if id_nuevo < id_actual:
+            nodo.izquierda = self.__agregarRecursivo(nodo.izquierda, centro)
+        elif id_nuevo > id_actual:
+            nodo.derecha = self.__agregarRecursivo(nodo.derecha, centro)
+        # Si id_nuevo == id_actual no se inserta (árbol sin duplicados).
 
         return nodo
 
-    # ---------- Buscar por nombre ----------
+    # ---------- Buscar por ID en el ABB ----------
 
-    def buscarPorNombre(self, nombre):
-        # Pasamos a minúsculas para buscar sin problemas de mayúsculas/minúsculas
-        return self.__buscarRecursivo(self.__raiz, nombre.lower())
+    def buscarPorId(self, id_buscado):
+        return self.__buscarRecursivo(self.__raiz, str(id_buscado).strip().lower())
 
-    def __buscarRecursivo(self, nodo, nombre):
-        # Si llegamos al final del camino y no está, devolvemos None
+    def __buscarRecursivo(self, nodo, id_buscado):
         if nodo is None:
             return None
 
-        # Si coincide exactamente el nombre, encontramos el centro
-        if nombre == nodo.centro.nombre.lower():
-            return nodo.centro
-        elif nombre < nodo.centro.nombre.lower():
-            return self.__buscarRecursivo(nodo.izquierda, nombre)
-        else:
-            return self.__buscarRecursivo(nodo.derecha, nombre)
+        id_actual = str(nodo.dato.idCentro).strip().lower()
 
-    # ---------- Recorridos (Inorden, Preorden, Postorden) ----------
+        if id_buscado == id_actual:
+            return nodo.dato
+        elif id_buscado < id_actual:
+            return self.__buscarRecursivo(nodo.izquierda, id_buscado)
+        else:
+            return self.__buscarRecursivo(nodo.derecha, id_buscado)
+
+    # ---------- Listar (recorridos) ----------
 
     def inorden(self):
-        # Recorrido clave: devuelve los centros ordenados alfabéticamente de menor a mayor
+        # Izquierda -> Raiz -> Derecha. En un ABB devuelve los datos ORDENADOS por ID.
         resultado = []
         self.__inordenRecursivo(self.__raiz, resultado)
         return resultado
@@ -94,21 +129,23 @@ class ABBCentros:
     def __inordenRecursivo(self, nodo, resultado):
         if nodo is not None:
             self.__inordenRecursivo(nodo.izquierda, resultado)
-            resultado.append(nodo.centro)
+            resultado.append(nodo.dato)
             self.__inordenRecursivo(nodo.derecha, resultado)
 
     def preorden(self):
+        # Raiz -> Izquierda -> Derecha.
         resultado = []
         self.__preordenRecursivo(self.__raiz, resultado)
         return resultado
 
     def __preordenRecursivo(self, nodo, resultado):
         if nodo is not None:
-            resultado.append(nodo.centro)
+            resultado.append(nodo.dato)
             self.__preordenRecursivo(nodo.izquierda, resultado)
             self.__preordenRecursivo(nodo.derecha, resultado)
 
     def postorden(self):
+        # Izquierda -> Derecha -> Raiz.
         resultado = []
         self.__postordenRecursivo(self.__raiz, resultado)
         return resultado
@@ -117,4 +154,22 @@ class ABBCentros:
         if nodo is not None:
             self.__postordenRecursivo(nodo.izquierda, resultado)
             self.__postordenRecursivo(nodo.derecha, resultado)
-            resultado.append(nodo.centro)
+            resultado.append(nodo.dato)
+
+    # ---------- Buscar por Nombre o Localidad en el ABB ----------
+    def buscarPorNombreOLocalidad(self, texto_buscado):
+        # Como el ABB está ordenado por ID, para buscar por nombre o localidad
+        # recorremos todos los nodos del árbol (aprovechando el método inorden) y filtramos.
+        todosLosCentros = self.inorden()
+        texto = str(texto_buscado).strip().lower()
+
+        centrosEncontrados = []
+        for centro in todosLosCentros:
+            nombreCentro = str(centro.nombre).strip().lower()
+            localidadCentro = str(centro.localidad).strip().lower()
+
+            # Si el texto coincide parcial o totalmente con el nombre o la localidad
+            if texto in nombreCentro or texto in localidadCentro:
+                centrosEncontrados.append(centro)
+
+        return centrosEncontrados

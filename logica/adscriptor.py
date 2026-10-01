@@ -1,24 +1,25 @@
 from logica.docente import Docente
 
 class Adscriptor(Docente):
-    def _init_(self, cedula, nombre, mail, contacto, centroPractica, grado, dias, horario, especialidad="Informática"):
-        super()._init_(cedula, nombre, mail, contacto, especialidad)
+    def __init__(self, cedula, nombre, mail, contacto, centroPractica, grupos, especialidad="Informática"):
+        # Heredamos los atributos básicos y la especialidad de la clase padre (Docente)
+        super().__init__(cedula, nombre, mail, contacto, especialidad)
         self.centroPractica = centroPractica
-        self.grado = grado
-        self.dias = dias
-        self.horario = horario
+        self.grupos = grupos  # Lista de diccionarios, ej: [{'grupo': '1°1', 'dias': 'Lunes', 'horario': '8:00'}]
 
-    def _str_(self):
-        base = super()._str_()
-        return ((
+    def __str__(self):
+        # Obtenemos la representación en texto de la clase padre (Docente)
+        base = super().__str__()
+
+        # Recorremos la lista de grupos para armar un texto ordenado con cada uno
+        info_grupos = ""
+        for g in self.grupos:
+            info_grupos += f"\n    • Grupo: {g['grupo']} | Días: {g['dias']} | Horario: {g['horario']}"
+
+        # Devolvemos el texto completo combinado y ordenado para mostrar en pantalla
+        return (
             f"{base}\n"
             f" • Centro de Práctica: {self.centroPractica}\n"
-            f" • Grado: {self.grado} | Días: {self.dias} | Horario: {self.horario}"
+            f" • Grupos a cargo:{info_grupos}"
         )
 
-@staticmethod)
-    def desdeLineaTxt(linea):
-        partes = linea.strip().split(",")
-        if len(partes) >= 6:
-            return Adscriptor(partes[0], partes[1], partes[2], partes[3], partes[4], partes[5])
-        return None

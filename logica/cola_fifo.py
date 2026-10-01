@@ -8,8 +8,8 @@ class ColaFIFO:
         self.elementos.append(elemento)
 
     def desencolar(self):
-        # Saca al primer estudiante que hizo la fila (el que lleva más tiempo esperando)
-        if not self.estaVacia():
+        # Saca al primer estudiante que hizo la fila si hay elementos adentro (preguntando si la cantidad es mayor a 0)
+        if len(self.elementos) > 0:
             return self.elementos.pop(0)
         return None
 
